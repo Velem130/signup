@@ -18,7 +18,7 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:5000/submit', form);
+      await axios.post('https://backend-4q2p.onrender.com/submit', form);
       setStatus("Submitted! We'll contact you soon.");
       setForm({ name: '', email: '', message: '' });
     } catch (err) {
