@@ -40,7 +40,7 @@ function Register() {
         <label className="block mb-2">
           Email
           <input type="email" name="email" value={form.email} onChange={handleChange} required
-            className="w-full p-2 border border-gray-300 rounded mt-1"/>
+            className="w-full p-2 border border-gray-400 rounded mt-1"/>
         </label>
 
         <label className="block mb-2">
