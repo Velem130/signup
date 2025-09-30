@@ -14,7 +14,7 @@ def home():
 
 # ✅ Add your SendGrid API key here (or better, use an environment variable in production)
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
-SENDER_EMAIL = "mlulekivelem@gmail.com"  # this must be verified in SendGrid
+SENDER_EMAIL = "shamilajoma@gmail.com"  # this must be verified in SendGrid
 
 @app.route('/submit', methods=['POST'])
 def submit():
