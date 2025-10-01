@@ -17,8 +17,11 @@ CORS(app)
 # Get API key from Render Environment Variables
 SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY") 
 SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send"
-# CRITICAL: This MUST match the address you verified in SendGrid
+
+# CRITICAL: This MUST match the address you verified as the sender in SendGrid
 SENDER_EMAIL = "mlulekivelem@gmail.com" 
+# NEW: The separate email address that will receive the form submissions
+RECIPIENT_EMAIL = "shamilajoma@gmail.com" 
 
 # --- Routes ---
 
@@ -39,19 +42,18 @@ def submit():
         message = data.get('message')
     except Exception as e:
         print(f"❌ Error parsing incoming JSON: {e}")
-        # Return a 400 Bad Request if the JSON is malformed
         return jsonify({"error": "Invalid JSON format"}), 400
 
     # 2. Construct the SendGrid email payload
     sendgrid_payload = {
         "personalizations": [{
-            # Change the 'to' email if you want a different recipient
-            "to": [{"email": SENDER_EMAIL}],
+            # Use the RECIPIENT_EMAIL (shamilajoma@gmail.com) here
+            "to": [{"email": RECIPIENT_EMAIL}], 
             "subject": "New Form Submission"
         }],
-        # This 'from' email is the one that MUST be verified in SendGrid
-        "from": {"email": SENDER_EMAIL},
-        # Allow replying to the user who filled out the form
+        # This 'from' email MUST be the verified sender (mlulekivelem@gmail.com)
+        "from": {"email": SENDER_EMAIL}, 
+        # Allow replying directly to the person who filled out the form
         "reply_to": {"email": email},
         "content": [{
             "type": "text/plain",
@@ -67,7 +69,6 @@ def submit():
 
     # 4. Make the request to SendGrid with robust error handling
     try:
-        # Use json= instead of data= for automatic JSON serialization
         response = requests.post(SENDGRID_API_URL, headers=headers, json=sendgrid_payload)
 
         # Check for success (SendGrid returns 202 Accepted on success)
@@ -75,12 +76,10 @@ def submit():
             print("✅ Email sent successfully via SendGrid")
             return jsonify({"message": "Submitted! We'll contact you soon."}), 200
         else:
-            # THIS IS THE CRITICAL LOGGING STEP
             # Log the full, detailed error message from SendGrid to the Render console
             print(f"❌ SendGrid failed with status {response.status_code}")
             print(f"❌ SendGrid error body: {response.text}")
             
-            # If the email failed for any reason (e.g., bad key, bad sender, etc.)
             return jsonify({"error": "Email service failed. Check backend logs for details."}), 500
 
     except requests.exceptions.RequestException as e:
