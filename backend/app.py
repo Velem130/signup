@@ -19,8 +19,9 @@ SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY")
 SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send"
 
 # CRITICAL: This MUST match the address you verified as the sender in SendGrid
-SENDER_EMAIL = "mlulekivelem@gmail.com" 
-# NEW: The separate email address that will receive the form submissions
+# UPDATED to use your authenticated domain 'issajozi.xyz'
+SENDER_EMAIL = "mlukivelem@issajozi.xyz" 
+# The separate email address that will receive the form submissions
 RECIPIENT_EMAIL = "shamilajoma@gmail.com" 
 
 # --- Routes ---
@@ -51,7 +52,7 @@ def submit():
             "to": [{"email": RECIPIENT_EMAIL}], 
             "subject": "New Form Submission"
         }],
-        # This 'from' email MUST be the verified sender (mlulekivelem@gmail.com)
+        # This 'from' email MUST be the verified sender (@issajozi.xyz)
         "from": {"email": SENDER_EMAIL}, 
         # Allow replying directly to the person who filled out the form
         "reply_to": {"email": email},
@@ -83,11 +84,11 @@ def submit():
             return jsonify({"error": "Email service failed. Check backend logs for details."}), 500
 
     except requests.exceptions.RequestException as e:
-        # Log network errors (e.g., DNS resolution failure, timeout)
+        # Log network errors (e.g., DNS resolution failure, timeout) 
         print(f"❌ Network or connection error to SendGrid: {e}")
         return jsonify({"error": "Network error with email service."}), 500
 
-# Start the server (Render uses Gunicorn, which ignores this block)
+# Start the server (Render uses Gunicorn, which ignores this block) 
 if __name__ == '__main__':
     # This is for local testing only
     app.run(debug=True, port=5000)
