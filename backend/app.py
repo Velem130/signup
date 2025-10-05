@@ -11,11 +11,13 @@ app = flask.Flask(__name__)
 CORS(app)
 
 # --- Configuration ---
-BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
+# Reads from Render Environment Variables
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY") 
 BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
-SENDER_EMAIL = "mlukivelem@issajozi.xyz"
-RECIPIENT_EMAIL = "shamilajoma@gmail.com"
+# Using the SENDER_EMAIL environment variable for best practice
+SENDER_EMAIL = os.environ.get("EMAIL_SENDER") 
+RECIPIENT_EMAIL = "shamilajoma@gmail.com" # Hardcoded recipient for the notification
 
 @app.route('/', methods=['GET'])
 def home():
@@ -34,6 +36,15 @@ def submit():
         print(f"❌ Error parsing incoming JSON: {e}")
         return jsonify({"error": "Invalid JSON format"}), 400
 
+    # === TEMPORARY DEBUG LINES ===
+    # These lines are crucial for troubleshooting the 401 error.
+    key_is_present = 'Yes' if BREVO_API_KEY else 'No'
+    key_length = len(BREVO_API_KEY) if BREVO_API_KEY else 0
+    print(f"DEBUG: BREVO_API_KEY loaded? {key_is_present}")
+    print(f"DEBUG: Key length: {key_length} (Expected length is around 68 characters)")
+    print(f"DEBUG: SENDER_EMAIL: {SENDER_EMAIL}")
+    # ============================
+
     # Brevo API payload
     brevo_payload = {
         "sender": {"email": SENDER_EMAIL},
@@ -45,7 +56,7 @@ def submit():
 
     headers = {
         "accept": "application/json",
-        "api-key": BREVO_API_KEY,
+        "api-key": BREVO_API_KEY, # The key is used here
         "content-type": "application/json"
     }
 
@@ -65,5 +76,6 @@ def submit():
         return jsonify({"error": "Network error with email service."}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
-
+    # Ensure you are using the PORT from the environment on Render
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
