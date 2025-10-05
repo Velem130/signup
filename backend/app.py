@@ -1,39 +1,30 @@
 import flask
 import requests
 import os
-import json
 from flask import request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-# Load environment variables from .env file (for local testing only)
 load_dotenv()
 
-# --- Configuration ---
 app = flask.Flask(__name__)
-# IMPORTANT: Allow access from your frontend domain
-CORS(app) 
+CORS(app)
 
-# Get API key from Render Environment Variables
-SENDGRID_API_KEY = os.environ.get("SENDGRID_API_KEY") 
-SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send"
+# --- Configuration ---
+BREVO_API_KEY = os.environ.get("BREVO_API_KEY")
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
-SENDER_EMAIL = "mlukivelem@issajozi.xyz" 
-
-RECIPIENT_EMAIL = "shamilajoma@gmail.com" 
-
-# --- Routes ---
+SENDER_EMAIL = "mlukivelem@issajozi.xyz"
+RECIPIENT_EMAIL = "shamilajoma@gmail.com"
 
 @app.route('/', methods=['GET'])
 def home():
-  
     return "Backend is running"
 
 @app.route('/submit', methods=['POST'])
 def submit():
     print("Received a form submission")
 
-   
     try:
         data = request.get_json()
         name = data.get('name')
@@ -43,48 +34,36 @@ def submit():
         print(f"❌ Error parsing incoming JSON: {e}")
         return jsonify({"error": "Invalid JSON format"}), 400
 
- 
-    sendgrid_payload = {
-        "personalizations": [{
-           
-            "to": [{"email": RECIPIENT_EMAIL}], 
-            "subject": "New Form Submission"
-        }],
-      
-        "from": {"email": SENDER_EMAIL}, 
-        # Allow replying directly to the person who filled out the form
-        "reply_to": {"email": email},
-        "content": [{
-            "type": "text/plain",
-            "value": f"New submission:\n\nName: {name}\nEmail: {email}\nMessage: {message}"
-        }]
+    # Brevo API payload
+    brevo_payload = {
+        "sender": {"email": SENDER_EMAIL},
+        "to": [{"email": RECIPIENT_EMAIL}],
+        "subject": "New Form Submission",
+        "replyTo": {"email": email},
+        "textContent": f"New submission:\n\nName: {name}\nEmail: {email}\nMessage: {message}"
     }
 
-    # 3. Set Authorization Headers
     headers = {
-        "Authorization": f"Bearer {SENDGRID_API_KEY}",
-        "Content-Type": "application/json"
+        "accept": "application/json",
+        "api-key": BREVO_API_KEY,
+        "content-type": "application/json"
     }
 
-    # 4. Make the request to SendGrid with robust error handling
     try:
-        response = requests.post(SENDGRID_API_URL, headers=headers, json=sendgrid_payload)
+        response = requests.post(BREVO_API_URL, headers=headers, json=brevo_payload)
 
-       
-        if response.status_code == 202:
-            print("✅ Email sent successfully via SendGrid")
+        if response.status_code == 201:
+            print("✅ Email sent successfully via Brevo")
             return jsonify({"message": "Submitted! We'll contact you soon."}), 200
         else:
-         
-            print(f"❌ SendGrid failed with status {response.status_code}")
-            print(f"❌ SendGrid error body: {response.text}")
-            
+            print(f"❌ Brevo failed with status {response.status_code}")
+            print(f"❌ Brevo error body: {response.text}")
             return jsonify({"error": "Email service failed. Check backend logs for details."}), 500
 
     except requests.exceptions.RequestException as e:
-       
-        print(f"❌ Network or connection error to SendGrid: {e}")
+        print(f"❌ Network or connection error to Brevo: {e}")
         return jsonify({"error": "Network error with email service."}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
+
