@@ -10,22 +10,15 @@ load_dotenv()
 app = flask.Flask(__name__)
 CORS(app)
 
-# --- Configuration ---
-# BREVO_API_KEY should be loaded from environment variables
 BREVO_API_KEY = os.environ.get("BREVO_API_KEY") 
 BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
-# FIX: Hardcode the verified sender email address to ensure it is not missing.
-# You were using "mlukivelem@issajozi.xyz" or "info@issajozi.xyz" before. 
-# I will use the one you provided in an earlier log:
 SENDER_EMAIL = "mlukivelem@issajozi.xyz"
 RECIPIENT_EMAIL = "shamilajoma@gmail.com"
-
-# --- CRITICAL STARTUP CHECK ---
+-
 if not BREVO_API_KEY:
     print("FATAL ERROR: BREVO_API_KEY is missing. Check Render environment variables.")
     pass 
-# ------------------------------
 
 @app.route('/', methods=['GET'])
 def home():
@@ -35,7 +28,7 @@ def home():
 def submit():
     print("Received a form submission")
     
-    # 1. Key Status check
+    # 1.im checking Key stutsu 
     if not BREVO_API_KEY:
         error_msg = "Brevo API Key is missing. Cannot send email."
         print(f"❌ FATAL: {error_msg}")
@@ -52,7 +45,7 @@ def submit():
 
     # Brevo API payload
     brevo_payload = {
-        # SENDER_EMAIL is now guaranteed to be set
+      
         "sender": {"email": SENDER_EMAIL}, 
         "to": [{"email": RECIPIENT_EMAIL}],
         "subject": "New Form Submission",
